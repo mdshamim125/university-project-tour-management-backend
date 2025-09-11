@@ -15,7 +15,7 @@ router.post("/logout", AuthControllers.logout);
 router.post(
   "/reset-password",
   checkAuth(...Object.values(Role)),
-  AuthControllers.resetPassword
+  AuthControllers.changePassword
 );
 
 //  /booking -> /login -> succesful google login -> /booking frontend
