@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Invoice</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 520px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #222;
+      margin-top: 0;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .details {
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .details p {
+      margin: 8px 0;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #007bff;
+      color: #fff !important;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .footer {
+      margin-top: 24px;
+      font-size: 13px;
+      text-align: center;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Invoice for Your Booking</h1>
+    <div class="details">
+      <p><strong>Payment ID:</strong> <%= paymentId %></p>
+      <p><strong>Amount Paid:</strong> <%= amount %> <%= currency %></p>
+    </div>
+    <p style="text-align: center;">
+      Thank you for your booking! We look forward to serving you.
+    </p>
+    <p style="text-align: center; margin-top: 20px;">
+      <a href="<%= invoicePdfLink %>" class="btn" target="_blank">Download Invoice PDF</a>
+    </p>
+    <div class="footer">
+      &copy; <%= new Date().getFullYear() %> PH Tour Management. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
