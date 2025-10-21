@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Query } from "mongoose";
 import { excludeField } from "../constants";
 
@@ -55,6 +56,13 @@ export class QueryBuilder<T> {
 
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
 
+    return this;
+  }
+
+  populate(
+    path: string | string[] | { path: string; select?: string } | any
+  ): this {
+    this.modelQuery = this.modelQuery.populate(path);
     return this;
   }
 
