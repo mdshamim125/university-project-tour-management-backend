@@ -47,7 +47,7 @@ router.post(
 );
 
 router.get(
-    "/:slug",
+    "/:id",
     TourController.getSingleTour
 );
 router.patch(

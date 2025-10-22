@@ -31,12 +31,12 @@ const getAllTours = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSingleTour = catchAsync(async (req: Request, res: Response) => {
-  const slug = req.params.slug;
-  const result = await TourService.getSingleTour(slug);
+  const id = req.params.id;
+  const result = await TourService.getSingleTour(id);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Tour retrieved successfully",
+    message: "Tour retrieved successfully!",
     data: result,
   });
 });

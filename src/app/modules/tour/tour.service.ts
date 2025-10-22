@@ -12,16 +12,6 @@ const createTour = async (payload: ITour) => {
     throw new Error("A tour with this title already exists.");
   }
 
-  // const baseSlug = payload.title.toLowerCase().split(" ").join("-")
-  // let slug = `${baseSlug}`
-
-  // let counter = 0;
-  // while (await Tour.exists({ slug })) {
-  //     slug = `${slug}-${counter++}` // dhaka-division-2
-  // }
-
-  // payload.slug = slug;
-
   const tour = await Tour.create(payload);
 
   return tour;
@@ -53,8 +43,16 @@ const getAllTours = async (query: Record<string, string>) => {
     meta,
   };
 };
-const getSingleTour = async (slug: string) => {
-  const tour = await Tour.findOne({ slug });
+
+const getSingleTour = async (id: string) => {
+  const tour = await Tour.find({ _id: id })
+    .populate([
+      { path: "tourType", select: "name" },
+      { path: "division", select: ["name", "description"] },
+    ])
+    .lean(); // optional: returns plain JS object instead of Mongoose document
+
+
   return {
     data: tour,
   };
@@ -72,7 +70,6 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 
   return updatedTour;
 };
-
 
 const deleteTour = async (id: string) => {
   return await Tour.findByIdAndDelete(id);
