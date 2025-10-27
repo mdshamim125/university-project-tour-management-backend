@@ -41,6 +41,27 @@ const updateUser = catchAsync(
   }
 );
 
+const updateUserStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const verifiedToken = req.user;
+    const payload = req.body;
+    console.log(userId, verifiedToken, payload);
+    const updatedUser = await UserServices.updateUserStatus(
+      userId,
+      payload,
+      verifiedToken as JwtPayload
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User status updated successfully",
+      data: updatedUser,
+    });
+  }
+);
+
 const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
@@ -91,5 +112,6 @@ export const UserControllers = {
   getSingleUser,
   updateUser,
   getMe,
+  updateUserStatus,
 };
 // route matching -> controller -> service -> model -> DB

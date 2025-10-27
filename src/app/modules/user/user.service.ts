@@ -81,6 +81,40 @@ const updateUser = async (
   return newUpdatedUser;
 };
 
+const updateUserStatus = async (
+  userId: string,
+  payload: {
+    isActive?: boolean;
+    isDeleted?: boolean;
+    isVerified?: boolean;
+  },
+  decodedToken: JwtPayload
+) => {
+  // 🧩 Check if the user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // 🚫 Normal users or guides cannot update status fields
+  if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
+
+  // 🚫 Admin cannot modify super admin
+  if (decodedToken.role === Role.ADMIN && user.role === Role.SUPER_ADMIN) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+  }
+
+  // ✅ Proceed with updating allowed fields
+  const updatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return updatedUser;
+};
+
 const getAllUsers = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(User.find(), query);
   const usersData = queryBuilder
@@ -120,4 +154,5 @@ export const UserServices = {
   getSingleUser,
   updateUser,
   getMe,
+  updateUserStatus,
 };

@@ -29,5 +29,11 @@ router.patch(
   checkAuth(...Object.values(Role)),
   UserControllers.updateUser
 );
+router.patch(
+  "/status/:id",
+  validateRequest(updateUserZodSchema),
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.updateUserStatus
+);
 // /api/v1/user/:id
 export const UserRoutes = router;
