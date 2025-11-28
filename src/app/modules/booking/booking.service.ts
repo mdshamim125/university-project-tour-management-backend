@@ -8,6 +8,8 @@ import { BOOKING_STATUS, IBooking } from "./booking.interface";
 import { Booking } from "./booking.model";
 import { SSLService } from "../../config/sslCommerz.config";
 import { ISSLCommerz } from "../../config/sslCommerz.interface";
+import { Payment } from "../payment/payment.mode";
+import { PAYMENT_STATUS } from "../payment/payment.interface";
 
 /**
  * Duplicate DB Collections / replica
