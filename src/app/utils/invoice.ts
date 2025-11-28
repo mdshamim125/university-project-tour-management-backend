@@ -1,49 +1,146 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import PDFDocument from "pdfkit";
 import AppError from "../errorHelpers/AppError";
 
 export interface IInvoiceData {
-    transactionId: string;
-    bookingDate: Date;
-    userName: string;
-    tourTitle: string;
-    guestCount: number;
-    totalAmount: number;
+  transactionId: string;
+  bookingDate: Date;
+  userName: string;
+  tourTitle: string;
+  guestCount: number;
+  totalAmount: number;
 }
 
-export const generatePdf = async (invoiceData: IInvoiceData): Promise<Buffer<ArrayBufferLike>> => {
-    try {
-        return new Promise((resolve, reject) => {
-            const doc = new PDFDocument({ size: "A4", margin: 50 })
-            const buffer: Uint8Array[] = [];
+export const generatePdf = async (
+  invoiceData: IInvoiceData
+): Promise<Buffer> => {
+  try {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 50,
+        info: {
+          Title: "Booking Invoice",
+          Author: "Tour Management",
+        },
+      });
 
-            doc.on("data", (chunk) => buffer.push(chunk))
-            doc.on("end", () => resolve(Buffer.concat(buffer)))
-            doc.on("error", (err) => reject(err))
+      const buffers: Uint8Array[] = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+      doc.on("error", (err) => reject(err));
 
-            //PDF Content
-            doc.fontSize(20).text("Invoice", { align: "center" });
-            doc.moveDown()
-            doc.fontSize(14).text(`Transaction ID : ${invoiceData.transactionId}`)
-            doc.text(`Booking Date : ${invoiceData.bookingDate}`)
-            doc.text(`Customer : ${invoiceData.userName}`)
+      // --- Helper Functions ---
+      const sectionTitle = (title: string) => {
+        doc
+          .moveDown(1)
+          .fontSize(14)
+          .fillColor("#333")
+          .text(title, { underline: true });
+        doc.moveDown(0.5);
+      };
 
-            doc.moveDown();
+      const field = (label: string, value: string | number) => {
+        doc
+          .fontSize(12)
+          .fillColor("black")
+          .text(`${label}: `, { continued: true })
+          .font("Helvetica-Bold")
+          .text(value.toString());
+        doc.font("Helvetica").moveDown(0.3);
+      };
 
-            doc.text(`Tour: ${invoiceData.tourTitle}`);
-            doc.text(`Guests: ${invoiceData.guestCount}`);
-            doc.text(`Total Amount: $${invoiceData.totalAmount.toFixed(2)}`);
-            doc.moveDown();
+      const drawLine = () => {
+        doc
+          .strokeColor("#cccccc")
+          .lineWidth(1)
+          .moveTo(50, doc.y)
+          .lineTo(545, doc.y)
+          .stroke();
+        doc.moveDown();
+      };
 
-            doc.text("Thank you for booking with us!", { align: "center" });
+      // --------------------------
+      //       HEADER SECTION
+      // --------------------------
+      doc
+        .fontSize(26)
+        .fillColor("#0A74DA")
+        .text("Tour Management", { align: "center" });
 
-            doc.end()
+      doc.moveDown(0.5);
 
-        })
+      doc
+        .fontSize(16)
+        .fillColor("#333")
+        .text("Booking Invoice", { align: "center" });
 
-    } catch (error: any) {
-        console.log(error);
-        throw new AppError(401, `Pdf creation error ${error.message}`)
-    }
-}
+      drawLine();
+
+      // --------------------------
+      //      INVOICE DETAILS
+      // --------------------------
+      sectionTitle("Invoice Details");
+      field("Invoice No", invoiceData.transactionId);
+      field(
+        "Booking Date",
+        invoiceData.bookingDate.toLocaleDateString("en-GB")
+      );
+
+      // --------------------------
+      //      CUSTOMER DETAILS
+      // --------------------------
+      sectionTitle("Customer Information");
+      field("Customer Name", invoiceData.userName);
+
+      // --------------------------
+      //         TOUR INFO
+      // --------------------------
+      sectionTitle("Tour Information");
+      field("Tour Name", invoiceData.tourTitle);
+      field("Guest Count", invoiceData.guestCount);
+
+      // --------------------------
+      //        PAYMENT INFO
+      // --------------------------
+      sectionTitle("Payment Summary");
+
+      doc
+        .fontSize(13)
+        .font("Helvetica")
+        .text("Total Amount:", { continued: true })
+        .font("Helvetica-Bold")
+        .text(`Total Amount: $${invoiceData.totalAmount.toFixed(2)}`, {
+          align: "left",
+        });
+
+      drawLine();
+
+      // --------------------------
+      //       FOOTER SECTION
+      // --------------------------
+      doc.moveDown(2);
+      doc
+        .fontSize(12)
+        .fillColor("#666")
+        .text("Thank you for booking with Tour Management!", {
+          align: "center",
+        });
+
+      doc.moveDown(0.5);
+      doc
+        .fontSize(10)
+        .fillColor("#999")
+        .text("This is an autogenerated invoice. No signature required.", {
+          align: "center",
+        });
+
+      doc.end();
+    });
+  } catch (error: any) {
+    console.log(error);
+    throw new AppError(401, `PDF creation error: ${error.message}`);
+  }
+};
