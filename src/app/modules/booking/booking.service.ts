@@ -113,7 +113,8 @@ const getUserBookings = async (userId: string) => {
   const bookings = await Booking.find({ user: userId })
     .populate("user", "name email phone address")
     .populate("tour", "title costFrom")
-    .populate("payment");
+    .populate("payment")
+    .sort({ createdAt: -1 });
   return bookings;
 };
 
@@ -143,7 +144,8 @@ const getAllBookings = async () => {
   const bookings = await Booking.find({})
     .populate("user", "name email phone address")
     .populate("tour", "title costFrom")
-    .populate("payment");
+    .populate("payment")
+    .sort({ createdAt: -1 });
   return bookings;
 };
 

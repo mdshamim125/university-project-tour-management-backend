@@ -55,6 +55,9 @@ export const updateUserZodSchema = z.object({
       message: "Password must contain at least 1 number.",
     })
     .optional(),
+
+  oldPassword: z.string().optional(),
+
   phone: z
     .string({ error: "Phone Number must be string" })
     .regex(/^(?:\+8801\d{9}|01\d{9})$/, {

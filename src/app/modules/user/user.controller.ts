@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status-codes";
 import { catchAsync } from "../../utils/catchAsync";
@@ -23,14 +22,9 @@ const createUser = catchAsync(
 
 const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.params.id;
-    const verifiedToken = req.user;
     const payload = req.body;
-    const user = await UserServices.updateUser(
-      userId,
-      payload,
-      verifiedToken as JwtPayload
-    );
+    // console.log(decodeToken, payload, "controller");
+    const user = await UserServices.updateUser(payload, req.params.id);
 
     sendResponse(res, {
       success: true,
@@ -46,7 +40,7 @@ const updateUserStatus = catchAsync(
     const userId = req.params.id;
     const verifiedToken = req.user;
     const payload = req.body;
-    console.log(userId, verifiedToken, payload);
+    // console.log(userId, verifiedToken, payload);
     const updatedUser = await UserServices.updateUserStatus(
       userId,
       payload,

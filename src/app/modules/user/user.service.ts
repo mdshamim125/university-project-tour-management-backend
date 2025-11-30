@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "./user.model";
 import bcryptjs from "bcryptjs";
 import httpStatus from "http-status-codes";
@@ -37,48 +38,70 @@ const createUser = async (payload: Partial<IUser>) => {
   return user;
 };
 
-const updateUser = async (
-  userId: string,
-  payload: Partial<IUser>,
-  decodedToken: JwtPayload
-) => {
-  if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-    if (userId !== decodedToken.userId) {
-      throw new AppError(401, "You are not authorized");
+// const updateUser = async (userId: string, payload: Partial<IUser>) => {
+//   const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+//     new: true,
+//     runValidators: true,
+//   });
+
+//   return newUpdatedUser;
+// };
+
+const updateUser = async (payload: Partial<IUser>, userId: string) => {
+  const user = await User.findById(userId).select("+password");
+  // console.log(user);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // Check if user is an OAuth user
+  const isOAuthUser =
+    user.auths &&
+    user.auths.length > 0 &&
+    user.auths[0].provider !== "credentials";
+
+  if (payload.password) {
+    if (isOAuthUser) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Cannot change password for OAuth users"
+      );
     }
-  }
 
-  const ifUserExist = await User.findById(userId);
-
-  if (!ifUserExist) {
-    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
-  }
-
-  if (
-    decodedToken.role === Role.ADMIN &&
-    ifUserExist.role === Role.SUPER_ADMIN
-  ) {
-    throw new AppError(401, "You are not authorized");
-  }
-
-  if (payload.role) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+    if (!payload.oldPassword) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Old password is required to change password"
+      );
     }
-  }
 
-  if (payload.isActive || payload.isDeleted || payload.isVerified) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+    const isOldPasswordMatch = await bcryptjs.compare(
+      payload.oldPassword,
+      user.password as string
+    );
+    if (!isOldPasswordMatch) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "Old Password does not match"
+      );
     }
+
+    // Hash the new password
+    user.password = await bcryptjs.hash(
+      payload.password,
+      Number(envVars.BCRYPT_SALT_ROUND)
+    );
   }
 
-  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
-    new: true,
-    runValidators: true,
+  // Update other fields
+  Object.keys(payload).forEach((key) => {
+    if (key !== "password" && key !== "oldPassword") {
+      (user as any)[key] = (payload as any)[key];
+    }
   });
 
-  return newUpdatedUser;
+  await user.save();
+  return user;
 };
 
 const updateUserStatus = async (
