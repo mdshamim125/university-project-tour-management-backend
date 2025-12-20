@@ -2,24 +2,35 @@
 import { createClient } from "redis";
 import { envVars } from "./env";
 
-export const redisClient = createClient({
-  username: envVars.REDIS_USERNAME,
-  password: envVars.REDIS_PASSWORD,
-  socket: {
-    host: envVars.REDIS_HOST,
-    port: Number(envVars.REDIS_PORT),
-  },
-});
-
-redisClient.on("error", (err) => console.log("Redis Client Error", err));
-
-// await client.set('foo', 'bar');
-// const result = await client.get('foo');
-// console.log(result)  // >>> bar
+export let redisClient: ReturnType<typeof createClient> | null = null;
 
 export const connectRedis = async () => {
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-    console.log("Redis Connected");
+  if (!envVars.REDIS_HOST || !envVars.REDIS_PORT) {
+    console.warn("⚠️ Redis env missing. Skipping Redis.");
+    return;
+  }
+
+  console.log("🔍 Using Redis Host:", envVars.REDIS_HOST);
+
+  try {
+    const client = createClient({
+      url: `rediss://${envVars.REDIS_USERNAME}:${envVars.REDIS_PASSWORD}@${envVars.REDIS_HOST}:${envVars.REDIS_PORT}`,
+      socket: {
+        reconnectStrategy: false,
+      },
+    });
+
+    // log only once
+    client.once("error", (err) => {
+      console.warn("⚠️ Redis unavailable:", err.message);
+    });
+
+    await client.connect();
+
+    redisClient = client;
+    console.log("✅ Redis Connected");
+  } catch (error) {
+    console.warn("⚠️ Redis connection failed. Continuing without Redis.");
+    redisClient = null;
   }
 };
