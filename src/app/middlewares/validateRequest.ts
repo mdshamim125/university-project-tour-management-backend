@@ -2,17 +2,38 @@ import { NextFunction, Request, Response } from "express";
 import { ZodSchema } from "zod";
 
 export const validateRequest =
-  (zodSchema: ZodSchema) =>
+  (schema: ZodSchema) =>
   async (req: Request, res: Response, next: NextFunction) => {
-    // console.log(req.body);
     try {
-      req.body = await zodSchema.parseAsync(req.body);
-        // console.log(req.body);
+      let body = req.body;
+
+      // Handle multipart/form-data (JSON sent as string)
+      if (req.body?.data && typeof req.body.data === "string") {
+        body = JSON.parse(req.body.data);
+      }
+
+      req.body = await schema.parseAsync(body);
       next();
     } catch (error) {
       next(error);
     }
   };
+
+// import { NextFunction, Request, Response } from "express";
+// import { ZodSchema } from "zod";
+
+// export const validateRequest =
+//   (zodSchema: ZodSchema) =>
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     // console.log(req.body);
+//     try {
+//       req.body = await zodSchema.parseAsync(req.body);
+//         // console.log(req.body);
+//       next();
+//     } catch (error) {
+//       next(error);
+//     }
+//   };
 
 // import { NextFunction, Request, Response } from "express";
 // import { ZodObject } from "zod";
