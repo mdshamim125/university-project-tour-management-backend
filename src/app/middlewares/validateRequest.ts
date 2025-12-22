@@ -2,22 +2,23 @@ import { NextFunction, Request, Response } from "express";
 import { ZodSchema } from "zod";
 
 export const validateRequest =
-  (schema: ZodSchema) =>
+  (zodSchema: ZodSchema) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      let body = req.body;
-
-      // Handle multipart/form-data (JSON sent as string)
-      if (req.body?.data && typeof req.body.data === "string") {
-        body = JSON.parse(req.body.data);
+      // For multipart/form-data
+      if (typeof req.body.data === "string") {
+        req.body = JSON.parse(req.body.data);
       }
 
-      req.body = await schema.parseAsync(body);
+      // Validate ONLY body fields (not file)
+      req.body = await zodSchema.parseAsync(req.body);
+
       next();
     } catch (error) {
       next(error);
     }
   };
+
 
 // import { NextFunction, Request, Response } from "express";
 // import { ZodSchema } from "zod";
