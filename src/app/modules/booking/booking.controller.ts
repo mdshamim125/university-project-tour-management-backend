@@ -11,6 +11,7 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
     req.body,
     decodeToken.userId,
   );
+  // console.log(booking);
   sendResponse(res, {
     statusCode: 201,
     success: true,

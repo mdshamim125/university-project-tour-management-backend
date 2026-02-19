@@ -89,7 +89,13 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
       transactionId: transactionId,
     };
 
+    // const sslPayment = await SSLService.sslPaymentInit(sslPayload);
+
     const sslPayment = await SSLService.sslPaymentInit(sslPayload);
+
+    if (!sslPayment?.GatewayPageURL) {
+      throw new AppError(400, "Payment initialization failed");
+    }
 
     // console.log(sslPayment);
 
