@@ -44,6 +44,8 @@ const getAllTours = async (query: Record<string, string>) => {
   };
 };
 
+
+
 const getSingleTour = async (id: string) => {
   const tour = await Tour.find({ _id: id })
     .populate([

@@ -9,6 +9,8 @@ import { SSLService } from "../../config/sslCommerz.config";
 import { ISSLCommerz } from "../../config/sslCommerz.interface";
 import { Payment } from "../payment/payment.mode";
 import { PAYMENT_STATUS } from "../payment/payment.interface";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { bookingSearchableFields } from "./booking.constant";
 
 /**
  * Duplicate DB Collections / replica
@@ -49,7 +51,7 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
           ...payload,
         },
       ],
-      { session }
+      { session },
     );
 
     const payment = await Payment.create(
@@ -61,13 +63,13 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
           amount: amount,
         },
       ],
-      { session }
+      { session },
     );
 
     const updatedBooking = await Booking.findByIdAndUpdate(
       booking[0]._id,
       { payment: payment[0]._id },
-      { new: true, runValidators: true, session }
+      { new: true, runValidators: true, session },
     )
       .populate("user", "name email phone address")
       .populate("tour", "title costFrom")
@@ -128,7 +130,7 @@ const getBookingById = async (bookingId: string) => {
 
 const updateBookingStatus = async (
   bookingId: string,
-  payload: Partial<IBooking>
+  payload: Partial<IBooking>,
 ) => {
   const booking = await Booking.findByIdAndUpdate(bookingId, payload, {
     new: true,
@@ -140,13 +142,27 @@ const updateBookingStatus = async (
   return booking;
 };
 
-const getAllBookings = async () => {
-  const bookings = await Booking.find({})
-    .populate("user", "name email phone address")
-    .populate("tour", "title costFrom")
-    .populate("payment")
-    .sort({ createdAt: -1 });
-  return bookings;
+const getAllBookings = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Booking.find(), query);
+
+  const bookingsQuery = queryBuilder
+    .search(bookingSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate()
+    .populate([
+      { path: "user", select: "name email phone address" },
+      { path: "tour", select: "title costFrom" },
+      { path: "payment", select: "status transactionId amount" },
+    ]);
+
+  const [data, meta] = await Promise.all([
+    bookingsQuery.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return { data, meta };
 };
 
 export const BookingService = {

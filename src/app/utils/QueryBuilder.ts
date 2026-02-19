@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Query } from "mongoose";
+import mongoose, { Query } from "mongoose";
 import { excludeField } from "../constants";
 
 export class QueryBuilder<T> {
@@ -24,16 +24,42 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  // search(searchableField: string[]): this {
+  //   const searchTerm = this.query.searchTerm || "";
+  //   const searchQuery = {
+  //     $or: searchableField.map((field) => ({
+  //       [field]: { $regex: searchTerm, $options: "i" },
+  //     })),
+  //   };
+  //   this.modelQuery = this.modelQuery.find(searchQuery);
+  //   return this;
+  // }
+
   search(searchableField: string[]): this {
-    const searchTerm = this.query.searchTerm || "";
-    const searchQuery = {
-      $or: searchableField.map((field) => ({
-        [field]: { $regex: searchTerm, $options: "i" },
-      })),
+  const searchTerm = this.query.searchTerm;
+
+  if (!searchTerm) return this; // no search
+
+  const isObjectId = mongoose.Types.ObjectId.isValid(searchTerm);
+
+  const conditions = searchableField.map((field) => {
+    // If searching ObjectId fields (user, tour)
+    if (["user", "tour", "payment"].includes(field) && isObjectId) {
+      return { [field]: new mongoose.Types.ObjectId(searchTerm) };
+    }
+
+    // Otherwise use regex for string fields
+    return {
+      [field]: { $regex: searchTerm, $options: "i" },
     };
-    this.modelQuery = this.modelQuery.find(searchQuery);
-    return this;
-  }
+  });
+
+  this.modelQuery = this.modelQuery.find({
+    $or: conditions,
+  });
+
+  return this;
+}
 
   sort(): this {
     const sort = this.query.sort || "-createdAt";
