@@ -1,5 +1,5 @@
 
 set -o errexit
 
-npm install
-npm run build
+bun install
+bun run build
