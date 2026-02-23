@@ -3,7 +3,7 @@ import httpStatus from "http-status-codes";
 import { uploadBufferToCloudinary } from "../../config/cloudinary.config";
 import AppError from "../../errorHelpers/AppError";
 import { generatePdf, IInvoiceData } from "../../utils/invoice";
-import { sendEmail } from "../../utils/sendEmail";
+// import { sendEmail } from "../../utils/sendEmail";
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { Booking } from "../booking/booking.model";
 import { ITour } from "../tour/tour.interface";
@@ -103,24 +103,24 @@ const successPayment = async (query: Record<string, string>) => {
       { runValidators: true, session }
     );
 
-    await sendEmail({
-      to: (updatedBooking.user as unknown as IUser).email,
-      subject: "Your Booking Invoice",
-      templateName: "invoice",
-      templateData: {
-        paymentId: updatedPayment.transactionId,
-        amount: updatedPayment.amount,
-        currency: "BDT",
-        invoicePdfLink: cloudinaryResult.secure_url,
-      },
-      attachments: [
-        {
-          filename: "invoice.pdf",
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        },
-      ],
-    });
+    // await sendEmail({
+    //   to: (updatedBooking.user as unknown as IUser).email,
+    //   subject: "Your Booking Invoice",
+    //   templateName: "invoice",
+    //   templateData: {
+    //     paymentId: updatedPayment.transactionId,
+    //     amount: updatedPayment.amount,
+    //     currency: "BDT",
+    //     invoicePdfLink: cloudinaryResult.secure_url,
+    //   },
+    //   attachments: [
+    //     {
+    //       filename: "invoice.pdf",
+    //       content: pdfBuffer,
+    //       contentType: "application/pdf",
+    //     },
+    //   ],
+    // });
 
     await session.commitTransaction(); //transaction
     session.endSession();
